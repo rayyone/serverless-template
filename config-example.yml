@@ -1,0 +1,23 @@
+default: &default
+  DB_DEBUG: "false"
+  DEFAULT_BUCKET: "rayyone-data-dev"
+  RAYYONE_BUCKET: "rayyone-dev"
+  DEFAULT_BUCKET_REGION: "ap-southeast-1"
+  # optional. Set these in system ENV for production
+  PSQL_HOST: ""
+  PSQL_USER: ""
+  PSQL_PWD: ""
+  PSQL_DB: ""
+  PSQL_PORT: ""
+  SENTRY_DSN: "https://abc@sentry.io/def"
+
+dev:
+  <<: *default
+
+stage:
+  <<: *default
+
+prod:
+  <<: *default
+  DEFAULT_BUCKET: "rayyone-data-prod"
+  RAYYONE_BUCKET: "rayyone-prod"

@@ -1,0 +1,18 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+.idea
+.webpack
+
+/.idea
+/.vscode
+/dist
+/.env
+
+aws.config.json
+/yarn-error.log
+config.yml

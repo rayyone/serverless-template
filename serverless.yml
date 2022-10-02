@@ -1,0 +1,68 @@
+service: [repo-name]
+enableLocalInstallationFallback: true
+variablesResolutionMode: 20210326
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+#  vpc:
+#    subnetIds:
+#      - subnet-cfsa428d
+#      - subnet-0afc776e
+#    securityGroupIds:
+#      - sg-f51d3323
+  stage: dev
+  timeout: 900
+  region: ap-southeast-1
+  deploymentBucket: "rayyone-lambda-${opt:stage, self:provider.stage}"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:ListBucket
+      Resource:
+        - "arn:aws:s3:::${self:custom.config.DEFAULT_BUCKET}"
+        - "arn:aws:s3:::${self:custom.config.DEFAULT_BUCKET}/*"
+        - "arn:aws:s3:::${self:custom.config.RAYYONE_BUCKET}"
+        - "arn:aws:s3:::${self:custom.config.RAYYONE_BUCKET}/*"
+  environment:
+    STAGE: "${opt:stage, self:provider.stage}"
+    PSQL_HOST: "${env:PSQL_HOST, self:custom.secrets.PSQL_HOST}"
+    PSQL_USER: "${env:PSQL_USER, self:custom.secrets.PSQL_USER}"
+    PSQL_PWD: "${env:PSQL_PWD, self:custom.secrets.PSQL_PWD}"
+    PSQL_DB: "${env:PSQL_DB, self:custom.secrets.PSQL_DB}"
+    PSQL_PORT: "${env:PSQL_PORT, self:custom.secrets.PSQL_PORT}"
+    DEFAULT_BUCKET: "${self:custom.config.DEFAULT_BUCKET}"
+    DEFAULT_BUCKET_REGION: "${self:custom.config.DEFAULT_BUCKET_REGION}"
+    RAYYONE_BUCKET: "${self:custom.config.RAYYONE_BUCKET}"
+    SENTRY_DSN: "${self:custom.config.SENTRY_DSN}"
+    DB_DEBUG: "${self:custom.config.DB_DEBUG}"
+
+plugins:
+  - serverless-offline
+  - serverless-webpack
+
+custom:
+  webpack:
+    includeModules:
+      packagePath: "./package.json"
+  stage: "${opt:stage, self:provider.stage}"
+  secrets: ${file(./secrets.yml):${self:custom.stage}}
+  config: ${file(./config.yml):${self:custom.stage}}
+  dev:
+    schedule:
+      rate: rate(1 minute)
+  prod:
+    schedule:
+      rate: rate(1 minute)
+  serverless-offline:
+    port: 6000
+
+functions:
+  ping:
+    handler: src/handlers/ping.ping
+    events:
+      - schedule:
+          rate: ${self:custom.${self:custom.stage}.schedule.rate}
